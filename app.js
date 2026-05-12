@@ -28,12 +28,46 @@ app.get('/setup', async (req, res) => {
     } catch (e) { res.send(e.message); }
 });
 
+app.get('/setup-roles', async (req, res) => {
+    try {
+        // 1. Encargado de Federación
+        await db.collection('usuarios').doc('encargado@federacion.com').set({
+            password: 'claveencargado',
+            rol: 'encargado',
+            nombre: 'Juan Pérez'
+        });
+
+        // 2. Designado por el Encargado
+        await db.collection('usuarios').doc('designado@federacion.com').set({
+            password: 'clavedesignado',
+            rol: 'designado',
+            nombre: 'Carlos López'
+        });
+
+        res.send("<h1>Usuarios de Encargado y Designado creados con éxito.</h1>");
+    } catch (error) {
+        res.send("Error: " + error.message);
+    }
+});
+
 app.post('/login', async (req, res) => {
     const { usuario, password } = req.body;
-    if (usuario === "admin@futbol.com" && password === "admin123") {
-        return res.redirect('/admin');
+    
+    try {
+        // Buscamos el usuario por su ID (correo) en la colección usuarios
+        const userDoc = await db.collection('usuarios').doc(usuario).get();
+        
+        if (userDoc.exists) {
+            const datos = userDoc.data();
+            // Validamos la contraseña
+            if (datos.password === password) {
+                return res.redirect('/admin');
+            }
+        }
+        res.send("<h1>Usuario o contraseña incorrectos</h1><a href='/'>Volver</a>");
+    } catch (error) {
+        res.status(500).send("Error en el servidor");
     }
-    res.send("<h1>Error de acceso</h1><a href='/'>Volver</a>");
 });
 
 // 4. Panel Principal
