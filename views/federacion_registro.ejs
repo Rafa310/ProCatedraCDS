@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Federación</title>
+    <style>
+        body { 
+            margin: 0; 
+            background: url('/fondo.png') no-repeat center center fixed; 
+            background-size: cover; 
+            font-family: sans-serif; 
+        }
+        .form-card { 
+            background: rgba(255, 255, 255, 0.9); 
+            width: 450px; 
+            margin: 50px auto; 
+            padding: 30px; 
+            border-radius: 15px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+        }
+        h2 { text-align: center; color: #004d99; }
+        input { 
+            width: 95%; 
+            padding: 10px; 
+            margin-bottom: 15px; 
+            border-radius: 5px; 
+            border: 1px solid #ccc; 
+        }
+        button { 
+            width: 100%; 
+            padding: 12px; 
+            background: #004d99; 
+            color: white; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer; 
+            font-weight: bold; 
+        }
+        button:hover { background: #003366; }
+        .back-link { display: block; text-align: center; margin-top: 15px; text-decoration: none; color: #004d99; }
+    </style>
+</head>
+<body>
+
+    <div class="form-card">
+        <h2>Nueva Federación</h2>
+        <form action="/guardar-federacion" method="POST">
+            <input type="text" name="id" placeholder="ID de la Federación (ej: FED-01)" required>
+            <input type="text" name="nombre" placeholder="Nombre de la Federación" required>
+            
+            <label>Fecha de Fundación:</label>
+            <input type="date" name="fundacion" required>
+
+            <fieldset style="border: 1px solid #ccc; border-radius: 5px; padding: 10px; margin-bottom: 15px;">
+                <legend>Dirección</legend>
+                <input type="text" name="departamento" placeholder="Departamento" required>
+                <input type="text" name="municipio" placeholder="Municipio" required>
+                <input type="text" name="complemento" placeholder="Complemento (Calle, Ave, #Casa)" required>
+            </fieldset>
+            
+            <button type="submit">Guardar Federación</button>
+        </form>
+        <a href="/admin" class="back-link">← Volver al Panel</a>
+    </div>
+
+</body>
+</html>
