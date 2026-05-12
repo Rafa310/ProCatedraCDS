@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Jugador</title>
+    <style>
+        body { margin: 0; background: url('/fondo.png') no-repeat center center fixed; background-size: cover; font-family: sans-serif; }
+        .form-card { background: rgba(255, 255, 255, 0.9); width: 450px; margin: 40px auto; padding: 30px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        input, select { width: 95%; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ccc; }
+        button { width: 100%; padding: 12px; background: #004d99; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="form-card">
+        <h2>Nuevo Jugador</h2>
+        <form action="/guardar-jugador" method="POST">
+            <input type="text" name="id" placeholder="ID (DUI o Pasaporte)" required>
+            <input type="text" name="nombre" placeholder="Nombre Completo" required>
+            
+            <label>Fecha de Nacimiento:</label>
+            <input type="date" name="nacimiento" required>
+
+            <label>Género:</label>
+            <select name="genero" required>
+                <option value="Masculino">Masculino</option>
+                <option value="Femenino">Femenino</option>
+                <option value="Otro">Otro</option>
+            </select>
+            
+            <label>Seleccionar Equipo:</label>
+            <select name="id_equipo" required>
+                <% equipos.forEach(eq => { %>
+                    <option value="<%= eq.id %>"><%= eq.nombre %></option>
+                <% }) %>
+            </select>
+
+            <button type="submit">Registrar Jugador</button>
+        </form>
+        <br>
+        <a href="/admin" style="text-decoration: none; color: #004d99;">← Volver al Panel</a>
+    </div>
+</body>
+</html>

@@ -17,79 +17,69 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
 // 3. Rutas de Autenticación
+app.get('/', (req, res) => res.render('login'));
 
-app.get('/', (req, res) => {
-    res.render('login');
-});
-
-// Ruta temporal para crear/resetear el usuario (Visítala primero: localhost:3000/setup)
 app.get('/setup', async (req, res) => {
     try {
         await db.collection('usuarios').doc('admin@futbol.com').set({
-            password: 'admin123',
-            rol: 'admin',
-            nombre: 'Administrador Global'
+            password: 'admin123', rol: 'admin', nombre: 'Admin'
         });
-        res.send("<h1>Usuario admin@futbol.com con clave admin123 creado/resetado.</h1><a href='/'>Ir al Login</a>");
-    } catch (error) {
-        res.send("Error al crear usuario: " + error.message);
-    }
+        res.send("<h1>Usuario Creado</h1><a href='/'>Ir al Login</a>");
+    } catch (e) { res.send(e.message); }
 });
 
 app.post('/login', async (req, res) => {
-    const usuarioInput = req.body.usuario ? req.body.usuario.trim() : "";
-    const passwordInput = req.body.password ? req.body.password.trim() : "";
-
-    // LOGIN MAESTRO (Si esto coincide, entra sin ir a Firebase)
-    if (usuarioInput === "admin@futbol.com" && passwordInput === "admin123") {
-        console.log("Login exitoso con usuario maestro");
+    const { usuario, password } = req.body;
+    if (usuario === "admin@futbol.com" && password === "admin123") {
         return res.redirect('/admin');
     }
-
-    try {
-        // Intento normal por Firebase (si quieres usar otros usuarios después)
-        const userDoc = await db.collection('usuarios').doc(usuarioInput).get();
-        if (userDoc.exists && userDoc.data().password === passwordInput) {
-            return res.redirect('/admin');
-        }
-        res.send("<h1>Usuario o contraseña incorrectos</h1><a href='/'>Volver</a>");
-    } catch (error) {
-        res.status(500).send("Error: " + error.message);
-    }
+    res.send("<h1>Error de acceso</h1><a href='/'>Volver</a>");
 });
 
-// 4. Rutas del Sistema
+// 4. Panel Principal
+app.get('/admin', (req, res) => res.render('admin'));
 
-app.get('/admin', (req, res) => {
-    res.render('admin'); 
-});
-
-app.get('/nueva-federacion', (req, res) => {
-    res.render('federacion_registro');
-});
+// 5. Gestión de Federaciones
+app.get('/nueva-federacion', (req, res) => res.render('federacion_registro'));
 
 app.post('/guardar-federacion', async (req, res) => {
-    try {
-        const { id, nombre, fundacion, departamento, municipio, complemento } = req.body;
-        
-        const doc = await db.collection('federaciones').doc(id).get();
-        if (doc.exists) {
-            return res.send("<h1>Error: El ID ya existe.</h1><a href='/nueva-federacion'>Volver</a>");
-        }
-
-        await db.collection('federaciones').doc(id).set({
-            nombre,
-            fecha_fundacion: fundacion,
-            direccion: { departamento, municipio, complemento }
-        });
-
-        res.send("<h1>Federación guardada con éxito</h1><a href='/admin'>Volver al Panel</a>");
-    } catch (error) {
-        res.status(500).send("Error: " + error.message);
-    }
+    const { id, nombre, fundacion, departamento, municipio, complemento } = req.body;
+    await db.collection('federaciones').doc(id).set({
+        nombre, fecha_fundacion: fundacion,
+        direccion: { departamento, municipio, complemento }
+    });
+    res.redirect('/admin');
 });
 
-// 5. Encendido del servidor 
+// 6. Gestión de Equipos (Carga las federaciones para el Select)
+app.get('/nuevo-equipo', async (req, res) => {
+    const snapshot = await db.collection('federaciones').get();
+    const federaciones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.render('equipo_registro', { federaciones });
+});
+
+app.post('/guardar-equipo', async (req, res) => {
+    const { id, nombre, id_federacion } = req.body;
+    await db.collection('equipos').doc(id).set({ nombre, id_federacion });
+    res.redirect('/admin');
+});
+
+// 7. Gestión de Jugadores (Carga los equipos para el Select)
+app.get('/nuevo-jugador', async (req, res) => {
+    const snapshot = await db.collection('equipos').get();
+    const equipos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.render('jugador_registro', { equipos });
+});
+
+app.post('/guardar-jugador', async (req, res) => {
+    const { id, nombre, nacimiento, genero, id_equipo } = req.body;
+    await db.collection('jugadores').doc(id).set({
+        nombre, fecha_nacimiento: nacimiento, genero, id_equipo
+    });
+    res.redirect('/admin');
+});
+
+// 8. Puerto
 const PORT = 3000;
 app.listen(PORT, () => {
     console.log(`Servidor corriendo en http://localhost:${PORT}`);
