@@ -2,30 +2,62 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Registro de Equipo</title>
+    <title>Nuevo Equipo</title>
     <style>
-        body { margin: 0; background: url('/fondo.png') no-repeat center center fixed; background-size: cover; font-family: sans-serif; }
-        .form-card { background: rgba(255, 255, 255, 0.9); width: 400px; margin: 50px auto; padding: 30px; border-radius: 15px; }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: url('/fondo.png') no-repeat center fixed; background-size: cover; display: flex; height: 100vh; }
+        .sidebar { width: 290px; background: rgba(232, 245, 233, 0.96); height: 100%; box-shadow: 3px 0 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; padding-top: 30px; }
+        .sidebar h2 { text-align: center; color: #1b5e20; font-size: 1.3rem; margin-bottom: 35px; border-bottom: 2px solid #a5d6a7; padding-bottom: 15px; }
+        .sidebar a { padding: 16px 25px; text-decoration: none; color: #2e7d32; font-weight: 600; display: block; transition: all 0.3s ease; border-left: 5px solid transparent; }
+        .sidebar a:hover { background: #c8e6c9; color: #1b5e20; padding-left: 38px; transform: scale(1.03); border-left: 5px solid #1b5e20; }
+        .main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .welcome-card { background: rgba(255, 255, 255, 0.95); padding: 35px; border-radius: 20px; width: 100%; max-width: 450px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); box-sizing: border-box; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #b2dfdb; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #fff; }
+        input:focus, select:focus { border-color: #2e7d32; outline: none; }
+        button { width: 100%; padding: 14px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #1b5e20; }
+        .logout { margin-top: auto; margin-bottom: 25px; color: #c62828 !important; }
     </style>
 </head>
 <body>
-    <div class="form-card">
-        <h2>Registrar Nuevo Equipo</h2>
-        <form action="/guardar-equipo" method="POST">
-            <input type="text" name="id" placeholder="ID Equipo" required style="width: 90%; margin-bottom: 10px;"><br>
-            <input type="text" name="nombre" placeholder="Nombre del Equipo" required style="width: 90%; margin-bottom: 10px;"><br>
-            
-            <label>Seleccionar Federación:</label><br>
-            <select name="id_federacion" required style="width: 95%; margin-bottom: 20px; padding: 5px;">
-                <% federaciones.forEach(fed => { %>
-                    <option value="<%= fed.id %>"><%= fed.nombre %></option>
-                <% }) %>
-            </select>
+    <div class="sidebar">
+    <h2>SISTEMA FEDERACIÓN</h2>
+    
+    <!-- El administrador ve todo -->
+    <% if (user.rol === 'admin') { %>
+        <a href="/nueva-federacion">➕ Nueva Federación</a>
+        <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
+        <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+    <% } %>
 
-            <button type="submit" style="width: 100%; padding: 10px; background: #004d99; color: white; border: none; border-radius: 5px; cursor: pointer;">Guardar Equipo</button>
-        </form>
-        <br>
-        <a href="/admin">Volver al Panel</a>
+    <!-- El encargado ve equipos -->
+    <% if (user.rol === 'encargado') { %>
+        <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
+        <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+    <% } %>
+
+    <!-- El delegado solo ve su plantilla de jugadores -->
+    <% if (user.rol === 'delegado') { %>
+        <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+    <% } %>
+
+    <a href="/reporte">📊 Ver Listas / Reportes</a>
+    <a href="/logout" class="logout">🚪 Cerrar Sesión</a>
+</div>
+    <div class="main-content">
+        <div class="welcome-card">
+            <h2 style="color: #1b5e20; margin-top: 0; text-align: center;">Registrar Equipo</h2>
+            <form action="/guardar-equipo" method="POST">
+                <input type="text" name="id" placeholder="ID del Equipo" required>
+                <input type="text" name="nombre" placeholder="Nombre del Club" required>
+                <label style="color:#555; font-size:0.9rem; font-weight:bold;">Asignar Federación:</label>
+                <select name="id_federacion" required>
+                    <% federaciones.forEach(fed => { %>
+                        <option value="<%= fed.id %>"><%= fed.nombre %></option>
+                    <% }) %>
+                </select>
+                <button type="submit">Guardar Registro</button>
+            </form>
+        </div>
     </div>
 </body>
 </html>

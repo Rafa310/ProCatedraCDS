@@ -16,67 +16,53 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
-// 3. Rutas de Autenticación
-app.get('/', (req, res) => res.render('login'));
+// Variable global simulada para mantener el usuario activo (para fines académicos rápidos)
+let usuarioSesion = null;
 
-app.get('/setup', async (req, res) => {
-    try {
-        await db.collection('usuarios').doc('admin@futbol.com').set({
-            password: 'admin123', rol: 'admin', nombre: 'Admin'
-        });
-        res.send("<h1>Usuario Creado</h1><a href='/'>Ir al Login</a>");
-    } catch (e) { res.send(e.message); }
+// 3. Rutas de Autenticación
+app.get('/', (req, res) => {
+    res.render('login', { error: null });
 });
 
-app.get('/setup-roles', async (req, res) => {
+app.get('/setup-usuarios', async (req, res) => {
     try {
-        // 1. Encargado de Federación
-        await db.collection('usuarios').doc('encargado@federacion.com').set({
-            password: 'claveencargado',
-            rol: 'encargado',
-            nombre: 'Juan Pérez'
-        });
-
-        // 2. Designado por el Encargado
-        await db.collection('usuarios').doc('designado@federacion.com').set({
-            password: 'clavedesignado',
-            rol: 'designado',
-            nombre: 'Carlos López'
-        });
-
-        res.send("<h1>Usuarios de Encargado y Designado creados con éxito.</h1>");
-    } catch (error) {
-        res.send("Error: " + error.message);
-    }
+        const lote = db.batch();
+        lote.set(db.collection('usuarios').doc('admin@futbol.com'), { password: 'admin123', rol: 'admin', nombre: 'Administrador Global' });
+        lote.set(db.collection('usuarios').doc('encargado@futbol.com'), { password: 'encargado123', rol: 'encargado', nombre: 'Gestor de Federación' });
+        lote.set(db.collection('usuarios').doc('delegado@futbol.com'), { password: 'delegado123', rol: 'delegado', nombre: 'Delegado de Zona' });
+        await lote.commit();
+        res.send("<h1>Usuarios inyectados con éxito.</h1><a href='/'>Ir al Login</a>");
+    } catch (e) { res.send("Error: " + e.message); }
 });
 
 app.post('/login', async (req, res) => {
-    const { usuario, password } = req.body;
-    
+    const usuarioInput = req.body.usuario ? req.body.usuario.trim() : "";
+    const passwordInput = req.body.password ? req.body.password.trim() : "";
+
     try {
-        // Buscamos el usuario por su ID (correo) en la colección usuarios
-        const userDoc = await db.collection('usuarios').doc(usuario).get();
-        
-        if (userDoc.exists) {
-            const datos = userDoc.data();
-            // Validamos la contraseña
-            if (datos.password === password) {
-                return res.redirect('/admin');
-            }
+        const userDoc = await db.collection('usuarios').doc(usuarioInput).get();
+        if (userDoc.exists && userDoc.data().password === passwordInput) {
+            usuarioSesion = userDoc.data();
+            return res.render('admin', { user: usuarioSesion });
         }
-        res.send("<h1>Usuario o contraseña incorrectos</h1><a href='/'>Volver</a>");
-    } catch (error) {
-        res.status(500).send("Error en el servidor");
-    }
+        return res.render('login', { error: 'Usuario o contraseña incorrectos.' });
+    } catch (error) { res.status(500).send("Error: " + error.message); }
 });
 
 // 4. Panel Principal
-app.get('/admin', (req, res) => res.render('admin'));
+app.get('/admin', (req, res) => {
+    if (!usuarioSesion) return res.redirect('/');
+    res.render('admin', { user: usuarioSesion });
+});
 
-// 5. Gestión de Federaciones
-app.get('/nueva-federacion', (req, res) => res.render('federacion_registro'));
+// 5. Gestión de Federaciones (Solo Admin)
+app.get('/nueva-federacion', (req, res) => {
+    if (!usuarioSesion || usuarioSesion.rol !== 'admin') return res.send("<h1>Acceso Denegado: Solo el Administrador puede crear Federaciones.</h1>");
+    res.render('federacion_registro', { user: usuarioSesion });
+});
 
 app.post('/guardar-federacion', async (req, res) => {
+    if (!usuarioSesion || usuarioSesion.rol !== 'admin') return res.status(403).send("No autorizado");
     const { id, nombre, fundacion, departamento, municipio, complemento } = req.body;
     await db.collection('federaciones').doc(id).set({
         nombre, fecha_fundacion: fundacion,
@@ -85,11 +71,14 @@ app.post('/guardar-federacion', async (req, res) => {
     res.redirect('/admin');
 });
 
-// 6. Gestión de Equipos (Carga las federaciones para el Select)
+// 6. Gestión de Equipos (Admin y Gestor)
 app.get('/nuevo-equipo', async (req, res) => {
+    if (!usuarioSesion || (usuarioSesion.rol !== 'admin' && usuarioSesion.rol !== 'encargado')) {
+        return res.send("<h1>Acceso Denegado.</h1>");
+    }
     const snapshot = await db.collection('federaciones').get();
     const federaciones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.render('equipo_registro', { federaciones });
+    res.render('equipo_registro', { federaciones, user: usuarioSesion });
 });
 
 app.post('/guardar-equipo', async (req, res) => {
@@ -98,23 +87,53 @@ app.post('/guardar-equipo', async (req, res) => {
     res.redirect('/admin');
 });
 
-// 7. Gestión de Jugadores (Carga los equipos para el Select)
+// 7. Gestión de Jugadores (Admin y Delegado)
 app.get('/nuevo-jugador', async (req, res) => {
+    if (!usuarioSesion || (usuarioSesion.rol !== 'admin' && usuarioSesion.rol !== 'delegado')) {
+        return res.send("<h1>Acceso Denegado.</h1>");
+    }
     const snapshot = await db.collection('equipos').get();
     const equipos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    res.render('jugador_registro', { equipos });
+    res.render('jugador_registro', { equipos, user: usuarioSesion });
 });
 
 app.post('/guardar-jugador', async (req, res) => {
     const { id, nombre, nacimiento, genero, id_equipo } = req.body;
+    
+    // VALIDACIÓN CRÍTICA DE CALIDAD: Evitar duplicidad del jugador en otros equipos
+    const jugadorDoc = await db.collection('jugadores').doc(id).get();
+    if (jugadorDoc.exists) {
+        return res.send("<h1>Error de Negocio: El jugador ya está inscrito en un equipo del sistema.</h1><a href='/nuevo-jugador'>Volver</a>");
+    }
+
     await db.collection('jugadores').doc(id).set({
         nombre, fecha_nacimiento: nacimiento, genero, id_equipo
     });
-    res.redirect('/admin');
+    res.redirect('/reporte');
 });
 
-// 8. Puerto
-const PORT = 3000;
-app.listen(PORT, () => {
-    console.log(`Servidor corriendo en http://localhost:${PORT}`);
+// 8. Visualización de Reportes y Eliminación (Cumpliendo el requerimiento extra)
+app.get('/reporte', async (req, res) => {
+    if (!usuarioSesion) return res.redirect('/');
+    const snapshot = await db.collection('jugadores').get();
+    const jugadores = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.render('reporte', { jugadores, user: usuarioSesion });
 });
+
+app.post('/eliminar-jugador/:id', async (req, res) => {
+    if (!usuarioSesion || usuarioSesion.rol === 'delegado') {
+        return res.send("<h1>Acceso Denegado: Los delegados no pueden dar de baja jugadores.</h1>");
+    }
+    const id = req.params.id;
+    await db.collection('jugadores').doc(id).delete();
+    res.redirect('/reporte');
+});
+
+// Cierre de sesión seguro
+app.get('/logout', (req, res) => {
+    usuarioSesion = null;
+    res.redirect('/');
+});
+
+const PORT = 3000;
+app.listen(PORT, () => console.log(`Servidor con RBAC activo en http://localhost:${PORT}`));

@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Consolidado de Jugadores</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: url('/fondo.png') no-repeat center fixed; background-size: cover; display: flex; height: 100vh; }
+        .sidebar { width: 290px; background: rgba(232, 245, 233, 0.96); height: 100%; box-shadow: 3px 0 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; padding-top: 30px; }
+        .sidebar h2 { text-align: center; color: #1b5e20; font-size: 1.3rem; margin-bottom: 35px; border-bottom: 2px solid #a5d6a7; padding-bottom: 15px; }
+        .sidebar a { padding: 16px 25px; text-decoration: none; color: #2e7d32; font-weight: 600; display: block; transition: all 0.3s ease; border-left: 5px solid transparent; }
+        .sidebar a:hover { background: #c8e6c9; color: #1b5e20; padding-left: 38px; transform: scale(1.03); border-left: 5px solid #1b5e20; }
+        .main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .welcome-card { background: rgba(255, 255, 255, 0.95); padding: 35px; border-radius: 20px; width: 100%; max-width: 750px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); box-sizing: border-box; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #2e7d32; color: white; }
+        .btn-del { background: #c62828; color: white; border: none; padding: 8px 12px; border-radius: 5px; cursor: pointer; font-weight: bold; }
+        .btn-del:hover { background: #b71c1c; }
+        .logout { margin-top: auto; margin-bottom: 25px; color: #c62828 !important; }
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>SISTEMA FEDERACIÓN</h2>
+        <% if (user.rol === 'admin') { %>
+            <a href="/nueva-federacion">➕ Nueva Federación</a>
+            <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
+            <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+        <% } %>
+        <% if (user.rol === 'encargado') { %>
+            <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
+            <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+        <% } %>
+        <% if (user.rol === 'delegado') { %>
+            <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+        <% } %>
+        <a href="/reporte" style="background: #c8e6c9; border-left: 5px solid #1b5e20;">📊 Ver Listas / Reportes</a>
+        <a href="/logout" class="logout">🚪 Cerrar Sesión</a>
+    </div>
+    <div class="main-content">
+        <div class="welcome-card">
+            <h2 style="color: #1b5e20; margin-top: 0;">Reporte de Plantillas</h2>
+            <p>Usuario: <strong><%= user.nombre %></strong> | Rol: <strong style="text-transform: uppercase;"><%= user.rol %></strong></p>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Identificación</th>
+                        <th>Nombre del Jugador</th>
+                        <th>Género</th>
+                        <th>ID de Club</th>
+                        <% if (user.rol !== 'delegado') { %> <th>Acciones</th> <% } %>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% jugadores.forEach(jug => { %>
+                        <tr>
+                            <td><%= jug.id %></td>
+                            <td><%= jug.nombre %></td>
+                            <td><%= jug.genero %></td>
+                            <td><%= jug.id_equipo %></td>
+                            <% if (user.rol !== 'delegado') { %>
+                                <td>
+                                    <form action="/eliminar-jugador/<%= jug.id %>" method="POST" onsubmit="return confirm('¿Seguro que deseas dar de baja a este jugador de la base de datos?');">
+                                        <button type="submit" class="btn-del">Eliminar</button>
+                                    </form>
+                                </td>
+                            <% } %>
+                        </tr>
+                    <% }) %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+</html>

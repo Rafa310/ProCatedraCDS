@@ -2,39 +2,55 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Login - Federación de Fútbol</title>
+    <title>Acceso al Sistema - Federación de Fútbol</title>
     <style>
         body {
-            margin: 0;
-            padding: 0;
-            background-image: url('/fondo.png'); /* Aquí llamamos a tu imagen */
-            background-size: cover;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            font-family: sans-serif;
+            margin: 0; padding: 0;
+            background-image: url('/fondo.png'); background-size: cover; background-position: center;
+            height: 100vh; display: flex; justify-content: center; align-items: center;
+            font-family: 'Segoe UI', sans-serif;
         }
         .login-card {
-            background: rgba(255, 255, 255, 0.9);
-            padding: 40px;
-            border-radius: 15px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            text-align: center;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 50px 40px; width: 420px;
+            border-radius: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center; border: 2px solid #c8e6c9;
+        }
+        h1 { color: #1b5e20; margin-bottom: 30px; font-size: 2.2rem; }
+        .input-group { position: relative; margin-bottom: 25px; }
+        input {
+            width: 100%; padding: 15px 10px; box-sizing: border-box;
+            border: 2px solid #b2dfdb; border-radius: 10px;
+            font-size: 1.1rem; background: #f1f8e9; color: #333;
+            transition: all 0.3s ease;
+        }
+        input:focus { border-color: #2e7d32; background: #fff; outline: none; box-shadow: 0 0 8px rgba(46,125,50,0.2); }
+        button {
+            width: 100%; padding: 16px; background: #2e7d32; color: white;
+            border: none; border-radius: 10px; font-size: 1.2rem; font-weight: bold;
+            cursor: pointer; transition: background 0.3s, transform 0.2s;
+        }
+        button:hover { background: #1b5e20; transform: scale(1.02); }
+        .error-banner {
+            background: #ffebee; color: #c62828; padding: 12px;
+            border-radius: 8px; margin-bottom: 20px; border: 1px solid #ffcdd2; font-weight: 500;
         }
     </style>
 </head>
 <body>
     <div class="login-card">
-        <h1>Bienvenido</h1>
+        <h1>Iniciar Sesión</h1>
+        <% if (error) { %>
+            <div class="error-banner"><%= error %></div>
+        <% } %>
         <form action="/login" method="POST">
-            <!-- El "name" debe ser "usuario" para que coincida con tu app.js -->
-            <input type="email" name="usuario" placeholder="Correo electrónico" required><br><br>
-    
-            <!-- El "name" debe ser "password" -->
-            <input type="password" name="password" placeholder="Contraseña" required><br><br>
-    
-        <button type="submit">Ingresar</button>
+            <div class="input-group">
+                <input type="email" name="usuario" placeholder="Correo de Usuario" required>
+            </div>
+            <div class="input-group">
+                <input type="password" name="password" placeholder="Contraseña" required>
+            </div>
+            <button type="submit">Ingresar al Sistema</button>
         </form>
     </div>
 </body>

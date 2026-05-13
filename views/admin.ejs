@@ -2,97 +2,50 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Panel Administrativo - Federación</title>
+    <title>Panel Administrativo</title>
     <style>
-        body {
-            margin: 0;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: url('/fondo.png') no-repeat center center fixed;
-            background-size: cover;
-            display: flex;
-            height: 100vh;
-        }
-
-        /* Sidebar a la izquierda con verde claro sutil */
-        .sidebar {
-            width: 280px;
-            background: rgba(232, 245, 233, 0.95); /* Verde muy claro (Mint White) */
-            height: 100%;
-            box-shadow: 2px 0 10px rgba(0,0,0,0.2);
-            display: flex;
-            flex-direction: column;
-            padding-top: 30px;
-        }
-
-        .sidebar h2 {
-            text-align: center;
-            color: #2e7d32; /* Verde bosque */
-            font-size: 1.2rem;
-            margin-bottom: 30px;
-            padding: 0 15px;
-        }
-
-        /* Enlaces de la lista con animación */
-        .sidebar a {
-            padding: 15px 25px;
-            text-decoration: none;
-            color: #333;
-            font-weight: 500;
-            display: block;
-            transition: all 0.3s ease; /* Suavidad del movimiento */
-            border-left: 5px solid transparent;
-        }
-
-        /* Efecto de agrandarse y moverse a la derecha */
-        .sidebar a:hover {
-            background: #c8e6c9; /* Verde un poco más fuerte al tocar */
-            color: #1b5e20;
-            padding-left: 40px; /* Se desplaza a la derecha */
-            transform: scale(1.02); /* Se agranda un poquito */
-            border-left: 5px solid #2e7d32;
-        }
-
-        /* Área de contenido principal */
-        .main-content {
-            flex-grow: 1;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .welcome-card {
-            background: rgba(255, 255, 255, 0.8);
-            padding: 40px;
-            border-radius: 20px;
-            text-align: center;
-            backdrop-filter: blur(5px);
-        }
-
-        .logout {
-            margin-top: auto;
-            margin-bottom: 20px;
-            color: #d32f2f !important;
-        }
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: url('/fondo.png') no-repeat center fixed; background-size: cover; display: flex; height: 100vh; }
+        .sidebar { width: 290px; background: rgba(232, 245, 233, 0.96); height: 100%; box-shadow: 3px 0 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; padding-top: 30px; }
+        .sidebar h2 { text-align: center; color: #1b5e20; font-size: 1.3rem; margin-bottom: 35px; border-bottom: 2px solid #a5d6a7; padding-bottom: 15px; }
+        .sidebar a { padding: 16px 25px; text-decoration: none; color: #2e7d32; font-weight: 600; display: block; transition: all 0.3s ease; border-left: 5px solid transparent; }
+        .sidebar a:hover { background: #c8e6c9; color: #1b5e20; padding-left: 38px; transform: scale(1.03); border-left: 5px solid #1b5e20; }
+        .main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 20px; }
+        .welcome-card { background: rgba(255, 255, 255, 0.95); padding: 50px; border-radius: 20px; text-align: center; width: 100%; max-width: 500px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
+        .logout { margin-top: auto; margin-bottom: 25px; color: #c62828 !important; }
+        .logout:hover { background: #ffebee !important; }
     </style>
 </head>
 <body>
-
     <div class="sidebar">
-        <h2>GESTIÓN DE FEDERACIÓN</h2>
-        <a href="/nueva-federacion">➕ Registrar Federación</a>
-        <a href="/nuevo-equipo">⚽ Registrar Equipo</a>
-        <a href="/nuevo-jugador">👤 Registrar Jugador</a>
-        <a href="/reporte" style="margin-top: 20px;">📊 Ver Reportes</a>
-        
-        <a href="/" class="logout">🚪 Cerrar Sesión</a>
-    </div>
+    <h2>SISTEMA FEDERACIÓN</h2>
+    
+    <!-- El administrador ve todo -->
+    <% if (user.rol === 'admin') { %>
+        <a href="/nueva-federacion">➕ Nueva Federación</a>
+        <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
+        <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+    <% } %>
 
+    <!-- El encargado ve equipos -->
+    <% if (user.rol === 'encargado') { %>
+        <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
+        <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+    <% } %>
+
+    <!-- El delegado solo ve su plantilla de jugadores -->
+    <% if (user.rol === 'delegado') { %>
+        <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+    <% } %>
+
+    <a href="/reporte">📊 Ver Listas / Reportes</a>
+    <a href="/logout" class="logout">🚪 Cerrar Sesión</a>
+</div>
     <div class="main-content">
         <div class="welcome-card">
-            <h1>Bienvenido al Panel</h1>
-            <p>Selecciona una opción del menú para comenzar.</p>
+            <h1 style="color: #1b5e20;">Bienvenido, <%= user.nombre %></h1>
+            <p style="color: #555; font-size: 1.1rem;">Rol Asignado: <strong style="text-transform: uppercase;"><%= user.rol %></strong></p>
+            <p style="color: #777;">Utiliza la barra lateral para gestionar los grupos de fútbol.</p>
         </div>
     </div>
-
 </body>
 </html>
