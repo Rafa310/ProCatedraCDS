@@ -16,7 +16,7 @@ app.set('view engine', 'ejs');
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: true }));
 
-// Variable global simulada para mantener el usuario activo (para fines académicos rápidos)
+// Variable global simulada para mantener el usuario activo 
 let usuarioSesion = null;
 
 // 3. Rutas de Autenticación
@@ -95,6 +95,49 @@ app.get('/nuevo-jugador', async (req, res) => {
     const snapshot = await db.collection('equipos').get();
     const equipos = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     res.render('jugador_registro', { equipos, user: usuarioSesion });
+});
+
+// Formulario para crear usuarios (Solo para el Administrador)
+app.get('/nuevo-usuario', async (req, res) => {
+    if (!usuarioSesion || usuarioSesion.rol !== 'admin') {
+        return res.send("<h1>Acceso Denegado: Solo el Administrador Global puede gestionar usuarios.</h1>");
+    }
+    try {
+        const snapshot = await db.collection('federaciones').get();
+        const federaciones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.render('usuario_registro', { federaciones, user: usuarioSesion });
+    } catch (error) {
+        res.status(500).send("Error al cargar dependencias: " + error.message);
+    }
+});
+
+// Procesar el guardado del nuevo usuario en Firestore
+app.post('/guardar-usuario', async (req, res) => {
+    if (!usuarioSesion || usuarioSesion.rol !== 'admin') return res.status(403).send("No autorizado");
+    
+    const { correo, password, nombre, apellido, cargo, id_federacion } = req.body;
+    const emailClimpio = correo.trim();
+
+    try {
+        // Validación de Calidad: Evitar cuentas duplicadas
+        const userCheck = await db.collection('usuarios').doc(emailClimpio).get();
+        if (userCheck.exists) {
+            return res.send("<h1>Error de Calidad: El correo electrónico ya está registrado en el sistema.</h1><a href='/nuevo-usuario'>Volver</a>");
+        }
+
+        // Estructura del nuevo usuario
+        const nuevoUsuario = {
+            nombre: `${nombre} ${apellido}`,
+            password: password.trim(),
+            rol: cargo, // admin, encargado, delegado
+            id_federacion: cargo === 'admin' ? 'GLOBAL' : id_federacion
+        };
+
+        await db.collection('usuarios').doc(emailClimpio).set(nuevoUsuario);
+        res.send("<h1>Usuario institucional registrado con éxito.</h1><a href='/admin'>Volver al Panel</a>");
+    } catch (error) {
+        res.status(500).send("Error al registrar usuario: " + error.message);
+    }
 });
 
 app.post('/guardar-jugador', async (req, res) => {

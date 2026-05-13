@@ -19,27 +19,26 @@
     <div class="sidebar">
     <h2>SISTEMA FEDERACIÓN</h2>
     
-    <!-- El administrador ve todo -->
-    <% if (user.rol === 'admin') { %>
+    <% if (user.rol === 'admin') { %> <!--El admin lo ve todo-->
         <a href="/nueva-federacion">➕ Nueva Federación</a>
         <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
         <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+        <a href="/nuevo-usuario" style="background: #e8f5e9;">👥 Gestionar Usuarios</a> 
     <% } %>
 
-    <!-- El encargado ve equipos -->
-    <% if (user.rol === 'encargado') { %>
+    <% if (user.rol === 'encargado') { %> <!--Controlado pero mas libre-->
         <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
         <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
     <% } %>
 
-    <!-- El delegado solo ve su plantilla de jugadores -->
-    <% if (user.rol === 'delegado') { %>
+    <% if (user.rol === 'delegado') { %> <!--Lo mas basico-->
         <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
     <% } %>
 
     <a href="/reporte">📊 Ver Listas / Reportes</a>
     <a href="/logout" class="logout">🚪 Cerrar Sesión</a>
-</div>
+    </div>
+
     <div class="main-content">
         <div class="welcome-card">
             <h1 style="color: #1b5e20;">Bienvenido, <%= user.nombre %></h1>
