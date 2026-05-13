@@ -134,7 +134,12 @@ app.post('/guardar-usuario', async (req, res) => {
         };
 
         await db.collection('usuarios').doc(emailClimpio).set(nuevoUsuario);
-        res.send("<h1>Usuario institucional registrado con éxito.</h1><a href='/admin'>Volver al Panel</a>");
+        res.send(`
+                <script>
+                    alert("¡Usuario institucional registrado con éxito!");
+                    window.location.href = "/admin";
+                </script>
+            `);
     } catch (error) {
         res.status(500).send("Error al registrar usuario: " + error.message);
     }

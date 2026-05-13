@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Registro de Usuarios Institucionales</title>
+    <style>
+        body { margin: 0; font-family: 'Segoe UI', sans-serif; background: url('/fondo.png') no-repeat center fixed; background-size: cover; display: flex; height: 100vh; }
+        .sidebar { width: 290px; background: rgba(232, 245, 233, 0.96); height: 100%; box-shadow: 3px 0 15px rgba(0,0,0,0.15); display: flex; flex-direction: column; padding-top: 30px; }
+        .sidebar h2 { text-align: center; color: #1b5e20; font-size: 1.3rem; margin-bottom: 35px; border-bottom: 2px solid #a5d6a7; padding-bottom: 15px; }
+        .sidebar a { padding: 16px 25px; text-decoration: none; color: #2e7d32; font-weight: 600; display: block; transition: all 0.3s ease; border-left: 5px solid transparent; }
+        .sidebar a:hover { background: #c8e6c9; color: #1b5e20; padding-left: 38px; transform: scale(1.03); border-left: 5px solid #1b5e20; }
+        .main-content { flex-grow: 1; display: flex; justify-content: center; align-items: center; padding: 20px; overflow-y: auto; }
+        .welcome-card { background: rgba(255, 255, 255, 0.95); padding: 35px; border-radius: 20px; width: 100%; max-width: 480px; box-shadow: 0 8px 25px rgba(0,0,0,0.2); box-sizing: border-box; }
+        input, select { width: 100%; padding: 12px; margin-bottom: 15px; border: 2px solid #b2dfdb; border-radius: 8px; font-size: 1rem; box-sizing: border-box; background: #fff; }
+        input:focus, select:focus { border-color: #2e7d32; outline: none; }
+        button { width: 100%; padding: 14px; background: #2e7d32; color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; transition: background 0.3s; }
+        button:hover { background: #1b5e20; }
+        .logout { margin-top: auto; margin-bottom: 25px; color: #c62828 !important; }
+    </style>
+    <script>
+        // Lógica dinámica de interfaz (Aseguramiento de Calidad Funcional)
+        function verificarCargo() {
+            const cargo = document.getElementById("cargo").value;
+            const selectFederacion = document.getElementById("id_federacion");
+            
+            if (cargo === "admin") {
+                selectFederacion.value = "";
+                selectFederacion.disabled = true;
+                selectFederacion.style.backgroundColor = "#e0e0e0";
+            } else {
+                selectFederacion.disabled = false;
+                selectFederacion.style.backgroundColor = "#ffffff";
+            }
+        }
+    </script>
+</head>
+<body>
+    <div class="sidebar">
+        <h2>SISTEMA FEDERACIÓN</h2>
+        <a href="/nueva-federacion">➕ Nueva Federación</a>
+        <a href="/nuevo-equipo">⚽ Nuevo Equipo</a>
+        <a href="/nuevo-jugador">👤 Nuevo Jugador</a>
+        <a href="/nuevo-usuario" style="background: #c8e6c9; border-left: 5px solid #1b5e20;">¼ Gestor Usuarios</a>
+        <a href="/" class="logout">🚪 Cerrar Sesión</a>
+    </div>
+    <div class="main-content">
+        <div class="welcome-card">
+            <h2 style="color: #1b5e20; margin-top: 0; text-align: center;">Crear Usuario Institucional</h2>
+            <form action="/guardar-usuario" method="POST">
+                <input type="text" name="nombre" placeholder="Nombre" required>
+                <input type="text" name="apellido" placeholder="Apellido" required>
+                <input type="email" name="correo" placeholder="Correo Electrónico (Será su ID de acceso)" required>
+                <input type="password" name="password" placeholder="Contraseña de Acceso" required>
+                
+                <label style="color:#555; font-size:0.9rem; font-weight:bold;">Asignar Cargo / Rol:</label>
+                <select name="cargo" id="cargo" onchange="verificarCargo()" required>
+                    <option value="encargado">Gestor de Federación (Encargado)</option>
+                    <option value="delegado">Delegado de Equipo</option>
+                    <option value="admin">Administrador Global (Macro)</option>
+                </select>
+
+                <label style="color:#555; font-size:0.9rem; font-weight:bold;">Federación de Jurisdicción:</label>
+                <select name="id_federacion" id="id_federacion" required>
+                    <option value="">-- Selecciona una Federación --</option>
+                    <% federaciones.forEach(fed => { %>
+                        <option value="<%= fed.id %>"><%= fed.nombre %></option>
+                    <% }) %>
+                </select>
+
+                <button type="submit">Agregar Usuario</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
